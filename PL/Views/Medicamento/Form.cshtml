@@ -1,0 +1,117 @@
+﻿@model ML.Medicamento
+@{
+    ViewData["Title"] = "Form";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col">
+        <h1>Formulario</h1>
+    </div>
+    @if (Model.IdMedicamento != 0)
+    {
+        <div class="col" style="text-align:end">
+            @Html.ActionLink("Eliminar Registro","Delete","Medicamento",
+        new { @idMedicamento = Model.IdMedicamento }, htmlAttributes: new { @class = "btn btn-danger" })
+        </div>
+    }
+    
+</div>
+
+<hr />
+
+@using (Html.BeginForm("Form","Medicamento",FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.TextBoxFor(model => model.IdMedicamento, new { @class = "visually-hidden" })
+
+    <div class="row">
+        <div class="col">
+            @Html.LabelFor(model => model.Nombre)
+            @Html.TextBoxFor(model => model.Nombre, new { @class = "form-control" })
+        </div>
+
+        <div class="col">
+            @Html.LabelFor(model => model.Precio)
+            @Html.TextBoxFor(model => model.Precio, new { @class = "form-control" })
+        </div>
+
+        <div class="col">
+            @Html.LabelFor(model => model.Descripcion)
+            @Html.TextBoxFor(model => model.Descripcion, new { @class = "form-control" })
+        </div>
+
+    </div>
+        
+    <div class="row">
+        <div class="col-4">
+            @Html.LabelFor(model => model.Imagen)
+            <input id="fuImage" type='file' class="form-control" name="fuImage" onchange="validateFile(this), readURL(this);  " />
+            <br />
+
+            <div style="text-align:center">
+                @if (Model.Imagen != null && Model.Imagen != "")
+                {
+                    <img id="Img" src="data:image/*;base64,@Model.Imagen" style="width:150px ; height:150px" />
+                }
+                else
+                {
+                    <img id="Img" src="~/Imagenes/ProductoDefault.jpg" style="width:150px ; height:150px" />
+                }
+            </div>
+
+            @Html.HiddenFor(model => model.Imagen)
+        </div>
+        
+    </div>
+            
+
+    <br />
+
+    <div class="row">
+        <hr />
+        <div class="col">                            
+            <input type="submit" value="Guardar" class="btn btn-success" />
+        </div>
+        <div class="col" style="text-align:end">
+            @Html.ActionLink("Regresar", "Index", "Medicamento", htmlAttributes: new { @class = "btn btn-danger" })
+        </div>
+        
+        
+    </div>
+                
+}
+
+@section Scripts
+{
+    <script type="text/javascript">
+
+        function validateFile() {
+            var allowedExtension = ['jpeg', 'jpg', 'png'];
+            var fileExtension = document.getElementById('fuImage').value.split('.').pop().toLowerCase();
+            var isValidFile = false;
+            for (var index in allowedExtension) {
+                if (fileExtension === allowedExtension[index]) {
+                    isValidFile = true;
+                    break;
+                }
+            }
+            if (!isValidFile) {
+                alert('Las extensiones permitidas son : *.' + allowedExtension.join(', *.'));
+                document.getElementById('fuImage').value = ""
+            }
+            return isValidFile;
+        }//validateFile
+
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#Img').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }//readURL
+
+    </script>           
+
+}
+

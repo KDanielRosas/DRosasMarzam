@@ -1,0 +1,471 @@
+﻿@model ML.Carrito
+@{
+    ViewData["Title"] = "Carrito";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<head>
+    <style>
+        /* Modal */
+        .modal {
+            display: none; /* Por defecto, estará oculto */
+            position: fixed; /* Posición fija */
+            z-index: 1; /* Se situará por encima de otros elementos de la página*/
+            padding-top: 20px; /* El contenido estará situado a 200px de la parte superior */
+            left: 0;
+            top: 0;
+            width: 100%; /* Ancho completo */
+            height: 100%; /* Algura completa */
+            overflow: auto; /* Se activará el scroll si es necesario */
+            background-color: rgba(0,0,0,0.5); /* Color negro con opacidad del 50% */
+        }
+
+        .modalPay {
+            display: none; /* Por defecto, estará oculto */
+            position: fixed; /* Posición fija */
+            z-index: 1; /* Se situará por encima de otros elementos de la página*/
+            padding-top: 200px; /* El contenido estará situado a 200px de la parte superior */
+            left: 0;
+            top: 0;
+            width: 100%; /* Ancho completo */
+            height: 100%; /* Algura completa */
+            overflow: auto; /* Se activará el scroll si es necesario */
+            background-color: rgba(0,0,0,0.5); /* Color negro con opacidad del 50% */
+        }
+
+        /* Ventana o caja modal */
+        .contenido-modal {
+            position: relative; /* Relativo con respecto al contenedor -modal- */
+            background-color: white;
+            margin: auto; /* Centrada */
+            padding: 20px;
+            width: 30%;
+            -webkit-animation-name: animarsuperior;
+            -webkit-animation-duration: 0.5s;
+            animation-name: animarsuperior;
+            animation-duration: 0.5s
+        }
+
+        /* Animación */
+        @@webkit-keyframes animatetop {
+            from {
+                top: -300px;
+                opacity: 0
+            }
+
+            to {
+                top: 0;
+                opacity: 1
+            }
+        }
+
+        @@keyframes animarsuperior {
+            from {
+                top: -300px;
+                opacity: 0
+            }
+
+            to {
+                top: 0;
+                opacity: 1
+            }
+        }
+
+        /* Botón cerrar */
+        .cerrar {
+            color: black;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        /* DatePicker */
+        .ui-datepicker {
+            z-index: 9999 !important;
+        }
+        .ui-datepicker-calendar {
+            display: none;
+        }
+    </style>
+</head>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2><i class="fa-solid fa-cart-arrow-down" style="color:royalblue"></i> Carrito</h2>
+            <p>Productos añadidos al carrito. Puede eliminar o agregar si lo desea.</p>
+        </div>
+        <div class="col">
+            <div style="text-align:right">
+                @Html.ActionLink("Añadir más productos al carrito", "Index", "Medicamento", htmlAttributes: new { @class = "btn btn-success" })
+            </div><!--style-->
+        </div>
+        <hr />
+    </div>
+
+    <div class="row" style="text-align:center">
+
+        <div class="col-1 col-md-12">
+
+            @if (Model == null)
+            {
+                <div class="alert alert-danger" role="alert">No hay productos en el carrito.</div>
+            }
+            else
+            {
+                @if (Model.Medicamentos != null && Model.Medicamentos.Count > 0)
+                {
+
+                    <table class="table table-bordered table-responsive" id="tbProducto">
+                        <thead>
+                            <tr>
+                                <td class="visually-hidden">IdProducto</td>
+                                <td class="text-center" style="font-weight:bold;">Nombre</td>
+                                <td class="text-center" style="font-weight:bold;">Precio</td>
+                                <td class="text-center" style="font-weight:bold;">Descripcion</td>
+                                <td class="text-center" style="font-weight:bold;">Imagen</td>
+                                <td class="text-center" style="font-weight:bold;">Cantidad</td>
+                                <td class="text-center" style="font-weight:bold;">Subtotal</td>
+                                <td class="text-center" style="font-weight:bold;">Eliminar</td>
+                            </tr>
+                        </thead>
+
+                        <tbody style="vertical-align:middle">
+                            @foreach (ML.Medicamento medicamento in Model.Medicamentos)
+                            {
+                                <tr>
+                                    <td class="visually-hidden">@medicamento.IdMedicamento</td>
+                                    <td class="col-sm-2" style="vertical-align:middle">@medicamento.Nombre</td>
+                                    <td class="col-sm-1" style="vertical-align:middle">
+                                        <input type="text" id="txtPrecio_@medicamento.IdMedicamento" value="$ @((decimal)medicamento.Precio)" 
+                                        style="border: 0; text-align:center;" readonly/>
+                                        </td>
+                                    <td class="col-sm-3">@medicamento.Descripcion</td>
+                                    <td class="col-sm-2">
+                                        @if (medicamento.Imagen != null && medicamento.Imagen != "")
+                                        {
+                                            <img id="Img" src="data:image/*;base64,@medicamento.Imagen" style="width:150px ; height:150px" />
+                                        }
+
+                                        else
+                                        {
+                                            <img id="Img" src="~/Imagenes/ProductoDefault.jpg" style="width:150px ; height:150px" />
+                                        }
+
+                                    </td>
+
+                                    <td class="col-sm-2" >
+
+                                        <a class="btn btn-danger" onclick="RestarCantidad(@medicamento.IdMedicamento, document.getElementById('txtCantidad_@medicamento.IdMedicamento').value);">
+                                        <i class="fa-solid fa-minus"></i></a>                                      
+                                        
+                                    <input type="text" id="txtCantidad_@medicamento.IdMedicamento" value="@medicamento.Cantidad"
+                                    style="width:25px; height:25px; border: 0; text-align:center" readonly/>
+
+                                        <a class="btn btn-success" onclick="SumarCantidad(@medicamento.IdMedicamento, document.getElementById('txtCantidad_@medicamento.IdMedicamento').value);">
+                                        <i class="fa-solid fa-plus"></i></a>                                   
+
+                                    </td>
+
+                                    <td class="col-sm-2">
+                                        <input readonly id="txtSubTotal_@medicamento.IdMedicamento" value=""
+                                        style="width:60px; border:0; text-align:center" />                                        
+                                        </td>
+
+                                    <td class="text-center">
+                                        <a class="btn btn-danger"
+                                           href="@Url.Action("EliminarCarrito","Medicamento",
+                                            new { idMedicamento = medicamento.IdMedicamento })"><i class="fa-solid fa-trash"></i></a>
+                                    </td>
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                else
+                {
+                    <div class="alert alert-danger" role="alert">No hay productos en el carrito.</div>
+                }
+            }
+
+        </div>
+
+    </div>
+
+    <hr />
+
+    <div class="row" style="text-align:end">
+        <div class="col">
+            <button class="btn btn-success" onclick="Pay()">Ir a pagar</button>
+        </div>
+        
+    </div>
+
+</div> <!-- container -->
+
+<div>
+    <div id="ventanaModal" class="modal">
+        <div class="contenido-modal">
+            <div class="cerrar" style="text-align:end"><a class="btn">&times;</a></div>
+
+            <div class="row">
+                <h3>Ingrese la información</h3>
+            </div>
+
+            <div class="row">
+                
+                <label>Nombre </label>
+                <input class="form-control" id="txtNombre" onblur="ValidarNombre('txtNombre', 'lblNombre')" />
+                <label id="lblNombre"></label>
+
+                <label>Apellido Paterno</label>
+                <input class="form-control" id="txtApPat" onblur="ValidarNombre('txtApPat', 'lblApPat')" />
+                <label id="lblApPat"></label>
+
+                <label>Apellido Materno</label>
+                <input class="form-control" id="txtApMat" onblur="ValidarNombre('txtApMat', 'lblApMat')" />
+                <label id="lblApMat"></label>
+
+                <label>Tarjeta de Crédito</label>
+                <input onblur="ValidarCreditCard()" id="txtCreditCard" class="form-control" maxlength="16" />
+                <label id="lblCreditCard"></label>
+
+                <label>CVV</label>
+                <input onblur="ValidarCVV()" id="txtCVV" class="form-control" maxlength="3" />  
+                <label id="lblCVV"></label>
+
+                <label>Fecha de vencimiento</label>
+                <input class="form-control date-picker" readonly="readonly" style="background-color:white" />
+                
+            </div>
+
+            <br />
+               
+            <div class="row" style="text-align:end">
+                <div class="col">
+                    <a class="btn btn-success" onclick="finalPay()">Pagar</a>
+                </div>
+            </div>
+                       
+        </div>
+    </div>
+</div>
+
+<div>
+    <div id="ventanaPagar" class="modalPay">
+        <div class="contenido-modal">
+            <div class="cerrar" style="text-align:end"><a class="btn">&times;</a></div>
+
+            <div class="row">
+                <div class="col-sm-3">
+                    <i class="fa-solid fa-circle-check fa-beat" style="font-size: 3rem"></i>
+                </div>
+
+                <div class="col-sm-9">
+                    <p id="pMsg" style="margin-bottom:auto">Compra Realizada con éxito.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/base/jquery-ui.css">
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            @foreach (ML.Medicamento item in Model.Medicamentos)
+            {
+                <text>
+                ActualizarCantidad(@item.IdMedicamento);
+                </text>
+            }
+            
+        });
+        
+        function SumarCantidad(idMedicamento, cantidad){
+            if(cantidad == 20){
+                alert('Ya hay más productos en el stock.')
+            }
+            else{
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("SumarCantidad")',
+                    datatype: 'json',
+                    data: { idMedicamento },
+                    success: function (response) {
+                        if (response == "ERROR") {
+                            alert('Algo salió mal.');
+                        }
+                        else {
+                            ActualizarCantidad(idMedicamento);
+                        }
+                    },
+                    error: function () { }
+                });
+            }                   
+        }
+
+        function RestarCantidad(idMedicamento, cantidad) {
+            if(cantidad == 1){
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("EliminarCarrito")',
+                    datatype: 'json',
+                    data: { idMedicamento },
+                    success: function(response){
+                        if(response == "ERROR"){
+                            alert('Algo salió mal.');
+                        }
+                        else{
+                            location.reload();
+                        }
+                    },
+                    error: function(){  }
+                });
+            }
+            else{
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("RestarCantidad")',
+                    datatype: 'json',
+                    data: { idMedicamento },
+                    success: function (response) {
+                        if (response == "ERROR") {
+                            alert('Algo salió mal.');
+                        }
+                        else {
+                            ActualizarCantidad(idMedicamento);
+                        }
+                    },
+                    error: function () { }
+                });
+            }
+        }
+
+        function ActualizarCantidad(idMedicamento){
+            var txtCantidad = $('#txtCantidad_' + idMedicamento);
+            var txtSubTotal = $('#txtSubTotal_' + idMedicamento);
+
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetCantidad")',
+                datatype: 'json',
+                data: { idMedicamento },
+                success: function(result){
+                    txtCantidad[0].value = result.cantidad;
+                    txtSubTotal[0].value = '$' + (result.cantidad * result.precio);                    
+                },
+                error: function(){
+                    alert('Algo salió mal :(');
+                }
+            });
+        }
+
+        function Pay(){
+            // Ventana modal
+            var modal = document.getElementById("ventanaModal");
+            // Hace referencia al elemento <span> que tiene la X que cierra la ventana
+            var span = document.getElementsByClassName("cerrar")[0];
+            modal.style.display = "block";
+            // Si el usuario hace click en la x, la ventana se cierra
+            span.addEventListener("click", function () {
+                modal.style.display = "none";
+            });
+
+            // Si el usuario hace click fuera de la ventana, se cierra.
+            window.addEventListener("click", function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            });
+        }
+
+        function finalPay(){
+            // Ocultar Modal form
+            document.getElementById("ventanaModal").style.display = "none";
+
+            // Limpiar Modal form
+
+
+            // Ventana Modal
+            var modal = document.getElementById("ventanaPagar");
+            // Hace referencia al elemento <span> que tiene la X que cierra la ventana
+            var span = document.getElementsByClassName("cerrar")[1];
+            modal.style.display = "block";
+            // Si el usuario hace click en la x, la ventana se cierra
+            span.addEventListener("click", function () {
+                modal.style.display = "none";
+            });
+
+            // Si el usuario hace click fuera de la ventana, se cierra.
+            window.addEventListener("click", function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+        }
+
+        //DatePicker
+        $(function () {
+            $('.date-picker').datepicker({               
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: false,
+                dateFormat: 'mm/y',
+                onChangeMonthYear: function (year, month,inst) {
+                    $(this).datepicker('setDate', new Date(year, month -1));
+                }
+            });
+        });
+
+        function ValidarCreditCard(){
+            var txt = $('#txtCreditCard').val();
+            if (!/^[0-9]{13,16}$/g.test(txt)) {
+                $('#lblCreditCard').text("Solo se permiten numeros, 13 a 16 digitos.");
+                $('#lblCreditCard').css({ "color": "red" });
+                $('#txtCreditCard').css({ "borderColor": "red", "background-color": "#f8d7da" });
+                return false;
+            }
+            else{
+                $('#lblCreditCard').text("");
+                $('#txtCreditCard').css({ "borderColor": "green", "background-color": "#82E0AA" });
+                return true;
+            }
+        }
+
+        function ValidarNombre(idTxt, idLbl){
+            var txt = $('#' + idTxt).val();
+            if (!/^[a-zA-Z\s]*$/g.test(txt)){
+                $('#' + idLbl).text("Solo se permiten letras.");
+                $('#' + idLbl).css({ "color": "red" });
+                $('#' + idTxt).css({ "borderColor": "red", "background-color": "#f8d7da" });
+                return false;
+            }
+            else {
+                $('#' + idLbl).text("");
+                $('#' + idTxt).css({ "borderColor": "green", "background-color": "#82E0AA" });
+            }
+
+        }
+
+        function ValidarCVV(){
+            var txt = $('#txtCVV').val();
+            if (!/^[0-9]{3}$/g.test(txt)){
+                $('#lblCVV').text("Solo se permiten numeros, 3 digitos.");
+                $('#lblCVV').css({ "color": "red" });
+                $('#txtCVV').css({ "borderColor": "red", "background-color": "#f8d7da" });
+                return false;
+            }
+            else{
+                $('#lblCVV').text("");
+                $('#txtCVV').css({ "borderColor": "green", "background-color": "#82E0AA" });
+                return true;
+            }
+        }
+    </script>
+}

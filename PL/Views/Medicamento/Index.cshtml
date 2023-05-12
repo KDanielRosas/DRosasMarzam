@@ -1,0 +1,259 @@
+﻿@model ML.Medicamento
+@{
+    ViewData["Title"] = "Index";
+}
+
+<head>
+    <style>
+        /* Card Styles */
+
+    .card-sl {
+        border-radius: 8px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        position:relative;
+    }
+
+    .card-image img {
+        height: 11rem;
+        width: 11rem;
+        border-radius: 8px 8px 0px 0;
+    }
+
+    .card-action {
+        position: unset;
+        float: right;
+        margin-top: -25px;
+        margin-right: 20px;
+        z-index: 2;
+        color: black;
+        background: #fff;
+        border-radius: 100%;
+        padding: 15px;
+        font-size: 15px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2), 0 1px 2px 0 rgba(0, 0, 0, 0.19);
+    }
+
+    .card-action:hover {
+        color: #fff;
+        background: #cacaca;
+        -webkit-animation: pulse 1.5s infinite;
+    }
+
+    .card-heading {
+        font-size: 18px;
+        font-weight: bold;
+        background: #fff;
+        padding: 10px 15px;
+    }
+
+    .card-text {
+        padding: 10px 15px;
+        background: #fff;
+        font-size: 14px;
+        color: #636262;
+        text-align:justify;
+    }
+
+    .card-button {
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+        width: 100%;
+        background-color: #1F487E;
+        color: #fff;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .card-button:hover {
+        text-decoration: none;
+        background-color: #1D3461;
+        color: #fff;
+
+    }
+
+    /* Modal */
+.modal {
+  display: none; /* Por defecto, estará oculto */
+  position: fixed; /* Posición fija */
+  z-index: 1; /* Se situará por encima de otros elementos de la página*/
+  padding-top: 200px; /* El contenido estará situado a 200px de la parte superior */
+  left: 0;
+  top: 0;
+  width: 100%; /* Ancho completo */
+  height: 100%; /* Algura completa */
+  overflow: auto; /* Se activará el scroll si es necesario */
+  background-color: rgba(0,0,0,0.5); /* Color negro con opacidad del 50% */
+}
+
+/* Ventana o caja modal */
+.contenido-modal {
+  position: relative; /* Relativo con respecto al contenedor -modal- */
+  background-color: white;
+  margin: auto; /* Centrada */
+  padding: 20px;
+  width: 30%;
+  -webkit-animation-name: animarsuperior;
+  -webkit-animation-duration: 0.5s;
+  animation-name: animarsuperior;
+  animation-duration: 0.5s
+}
+
+/* Animación */
+@@webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+
+@@keyframes animarsuperior {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+/* Botón cerrar */
+.cerrar {
+  color: black;
+  font-size: 15px;
+  font-weight: bold;
+}
+    </style>
+</head>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2>Medicamentos</h2>
+        </div>
+        <div class="col" style="text-align:end">
+            @Html.ActionLink("Agregar","Form","Medicamento", htmlAttributes: new { @class = "btn btn-success" } )
+        </div>
+    </div>
+    <hr />
+</div> <!-- container -->
+
+    <div class="row">
+        <div class="col">
+            @if (Model.Medicamentos != null)
+            {
+                <div class="row row-cols-3">
+                    @foreach (ML.Medicamento item in Model.Medicamentos)
+                    {
+                        <div class="col">
+                            <div class="card-sl mb-3">
+                                <div class="card-image" style="text-align:center">
+                                @if (item.Imagen != null && item.Imagen != "")
+                                {
+                                    <img src="data:image/*;base64,@item.Imagen" />
+                                }
+                                else
+                                {
+                                    <img id="Img" src="~/Imagenes/ProductoDefault.jpg"/>
+                                }
+                                    
+                                </div>
+
+                                <a class="card-action" href="@Url.ActionLink("Form","Medicamento",
+                                    new { idMedicamento = item.IdMedicamento })">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                
+                                <div class="card-heading">
+                                    @item.Nombre
+                                </div>
+                                
+                                <div class="card-text">
+                                    @item.Descripcion
+                                </div>
+                                
+                                <div style="font-weight:bold; text-align:end; padding: 10px 15px;">
+                                    $@((decimal)item.Precio)
+                                </div>
+
+                                <div class="card-button" onclick="CartAdd(@item.IdMedicamento)" 
+                                    style="user-select:none; cursor:pointer">
+                                    Comprar
+                                </div>
+                            
+                            </div>
+                           
+                        </div>
+                    
+                    }
+                    
+                </div>
+
+            }
+            else
+            {
+                <div class="alert alert-danger" role="alert">No hay registros por mostrar. Agregue uno nuevo.</div>
+            }
+        </div>
+    </div>
+
+<div>
+    <div id="ventanaModal" class="modal">
+        <div class="contenido-modal">
+            <div class="cerrar" style="text-align:end"><a class="btn">&times;</a></div>
+
+            <div class="row">
+                <div class="col-sm-3">
+                    <i class="fa-solid fa-cart-shopping fa-bounce" style="font-size: 3rem"></i>
+                </div>
+
+                <div class="col-sm-9">
+                    <p id="pMsg" style="margin-bottom:auto"></p>
+                </div>
+            </div>                               
+        </div>                
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+
+        function CartAdd(idMedicamento){
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CartAdd")',
+                datatype: 'json',
+                data: { idMedicamento },
+                success: function(result){
+                    if (result == 'OK')
+                    {
+                        var r = "Producto añadido al carrito.";
+                    }
+                    else
+                    {
+                        var r = "Error";
+                    }
+                    modal.style.display = "block";
+                    $('#pMsg')[0].textContent = r;
+                },
+                error: function(ex){
+                    alert('Error:' + ex);
+                }
+            });//ajax
+        }//CartAdd
+
+        // Ventana modal
+        var modal = document.getElementById("ventanaModal");
+
+        // Hace referencia al elemento <span> que tiene la X que cierra la ventana
+        var span = document.getElementsByClassName("cerrar")[0];
+
+        // Si el usuario hace click en la x, la ventana se cierra
+        span.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+
+        // Si el usuario hace click fuera de la ventana, se cierra.
+        window.addEventListener("click", function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        });
+
+    </script>
+}
+
+
