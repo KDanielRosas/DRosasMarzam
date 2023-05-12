@@ -214,7 +214,7 @@
             </div>
 
             <div class="row">
-                
+
                 <label>Nombre </label>
                 <input class="form-control" id="txtNombre" onblur="ValidarNombre('txtNombre', 'lblNombre')" />
                 <label id="lblNombre"></label>
@@ -232,11 +232,11 @@
                 <label id="lblCreditCard"></label>
 
                 <label>CVV</label>
-                <input onblur="ValidarCVV()" id="txtCVV" class="form-control" maxlength="3" />  
+                <input onblur="ValidarCVV()" id="txtCVV" class="form-control" maxlength="3" />
                 <label id="lblCVV"></label>
-
+                    
                 <label>Fecha de vencimiento</label>
-                <input class="form-control date-picker" readonly="readonly" style="background-color:white" />
+                <input class="form-control date-picker" id="dateP" readonly="readonly" style="background-color:white" />       
                 
             </div>
 
@@ -389,7 +389,8 @@
             document.getElementById("ventanaModal").style.display = "none";
 
             // Limpiar Modal form
-
+            $('.form-control').removeAttr("style");
+            $(':input[class="form-control"], #dateP').val('');
 
             // Ventana Modal
             var modal = document.getElementById("ventanaPagar");
